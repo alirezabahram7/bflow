@@ -1,0 +1,40 @@
+{
+    "name": "behamin/bflow",
+    "description": "a package that helps to implement user flow in laravel projects",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alireza Bahram",
+            "email": "alib327@gmail.com"
+        },
+        {
+            "name": "Hamed Alizade",
+            "email": "hamed.alizadeq@gamil.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "BFlow\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BFlows\\Tests" : "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BFlows\\BFlowServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^7.2|^7.3|^7.4|^8.0",
+        "laravel/framework": "^7.0|^8.0",
+        "ext-json": "*",
+        "symfony/console": "^5.0"
+    }
+}

@@ -1,0 +1,12 @@
+<?php
+
+namespace {{ namespace }};
+
+use States\State;
+
+class {{ class }} extends State
+{
+    //public $name = 'startFoodListProcess';
+    //public $type = 'process';
+
+}

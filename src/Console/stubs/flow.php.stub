@@ -1,0 +1,21 @@
+<?php
+
+namespace {{ namespace }};
+
+class {{ class }} extends Flow
+{
+    protected $isMain = true;
+    protected $isDependent = false;
+
+    public function __construct()
+    {
+        $this->flow = [
+        //
+        ];
+
+
+        $this->checkpoints = [
+           // 'REG'   => ['description' => 'ثبت نام ناقص' , 'next' => DietType::class],
+        ];
+    }
+}
