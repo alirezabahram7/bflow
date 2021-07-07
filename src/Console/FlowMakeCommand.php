@@ -7,17 +7,16 @@ namespace BFlow\Console;
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Input\InputArgument;
 
-class State extends GeneratorCommand
+class FlowMakeCommand extends GeneratorCommand
 {
-    protected $signature = 'make:state {name}'; //type ?
-    protected $type = "State";
-
+    protected $signature = 'make:flow {name}'; //type
+    protected $type = 'Flow';
     /**
      * @inheritDoc
      */
     protected function getStub()
     {
-        return __DIR__ . '/stubs/state.php.stub';
+        return __DIR__ . '/stubs/flow.php.stub';
     }
 
     /**
@@ -26,17 +25,13 @@ class State extends GeneratorCommand
      */
     protected function getDefaultNamespace($rootNamespace)
     {
-        return $rootNamespace . '\Http\States';
+        return $rootNamespace . '\Http\BFlow\Flows';
     }
 
-    /**
-     * @return array
-     */
     protected function getArguments()
     {
         return [
-            ['name', InputArgument::REQUIRED, 'The name of the filter class.'],
+            ['name', InputArgument::REQUIRED, 'The name of the Flow class.'],
         ];
     }
-
 }
