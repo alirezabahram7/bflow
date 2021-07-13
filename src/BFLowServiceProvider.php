@@ -4,8 +4,9 @@ namespace BFlow;
 
 
 use BFlow\Facades\BFlow;
+use Illuminate\Support\ServiceProvider;
 
-class BFLowServiceProvider
+class BFlowServiceProvider extends ServiceProvider
 {
     public function register()
     {
