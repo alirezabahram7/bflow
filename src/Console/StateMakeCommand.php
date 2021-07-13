@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputOption;
 
 class StateMakeCommand extends GeneratorCommand
 {
-    protected $signature = 'make:state {name} {--type=process}';
+    protected $signature = 'make:state {name} {--type=display}';
     protected $description = 'Create a new state class';
     protected $type = "State";
 

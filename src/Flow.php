@@ -3,53 +3,59 @@
 
 namespace BFlow;
 
-use BFlow;
+
+use BFlow\Traits\FlowTrait;
 
 abstract class Flow
 {
+    use FlowTrait;
+
     protected $flow;
     protected $isMain;
     protected static $arguments;
     protected $checkpoints;
-    //protected static $defaultFlow = RegFlow::class;
-    protected static $defaultCheckpoint = 'REG';
+
     /**
      * @return $this
      */
-    public function getThis()
+    public function getThis() : Flow
     {
         return $this;
     }
 
+
     /**
-     * @return mixed
+     * @return array
      */
-    public function getFlow()
+    public function getFlow() : array
     {
         return $this->flow;
     }
 
+
     /**
-     * @return mixed
+     * @return array
      */
-    public function getCheckpoints()
+    public function getCheckpoints() : array
     {
         return $this->checkpoints;
     }
 
+
     /**
-     * @return mixed
+     * @return bool
      */
-    public function getIsMain()
+    public function getIsMain() : bool
     {
         return $this->isMain;
     }
 
+
     /**
      * @param string $accessoryClass
-     * @param string $after
+     * @param string|null $after
      */
-    public function addAccessory(string $accessoryClass, string $after = null)
+    public function addAccessory(string $accessoryClass, string $after = null) : void
     {
         $accessoryFlow = self::callMethod($accessoryClass , 'getFlow');
 
@@ -58,7 +64,7 @@ abstract class Flow
         }
         else {
             foreach ($accessoryFlow as $state) {
-                $afterIndex = BFlow::getIndexOfState($after, $this->flow);
+                $afterIndex = self::getIndexOfState($after, $this->flow);
                 $firstSlice = array_slice($this->flow, 0, $afterIndex + 1);
                 $secondSlice = array_slice($this->flow, $afterIndex + 1, count($this->flow));
                 $this->flow = $firstSlice;
@@ -67,20 +73,5 @@ abstract class Flow
                 $after = $state;
             }
         }
-    }
-
-    /**
-     * @param string $pathAndClassName
-     * @param string $functionName
-     * @param bool $statically
-     * @return bool|mixed
-     */
-    public static function callMethod(string $pathAndClassName, string $functionName, $statically = false)
-    {
-        if ( ! class_exists($pathAndClassName)) return false;
-        if ( ! $statically) {
-            $obj = new $pathAndClassName;
-        }
-        return call_user_func(array($obj ?? $pathAndClassName, $functionName));
     }
 }
