@@ -21,13 +21,13 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "BFlows\\Tests" : "tests"
+            "BFlow\\Tests\\" : "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "BFlows\\BFlowServiceProvider"
+                "BFlow\\BFlowServiceProvider"
             ]
         }
     },

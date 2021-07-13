@@ -2,11 +2,10 @@
 
 namespace {{ namespace }};
 
-use States\State;
+use BFlow\State;
 
 class {{ class }} extends State
 {
-    //public $name = 'startFoodListProcess';
-    //public $type = 'process';
-
+    public $type = {{ type }}
+    // public $allowedCheckpoints = ['REG'];
 }

@@ -2,6 +2,8 @@
 
 namespace {{ namespace }};
 
+use BFlow\Flow;
+
 class {{ class }} extends Flow
 {
     protected $isMain = true;
@@ -10,12 +12,12 @@ class {{ class }} extends Flow
     public function __construct()
     {
         $this->flow = [
-        //
+            //
         ];
 
 
         $this->checkpoints = [
-           // 'REG'   => ['description' => 'ثبت نام ناقص' , 'next' => DietType::class],
+           // 'REG'   => ['description' => 'Primary step of register process' , 'next' => DietType::class],
         ];
     }
 }
