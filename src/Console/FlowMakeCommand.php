@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 class FlowMakeCommand extends GeneratorCommand
 {
     protected $signature = 'make:flow {name}'; //type
+    protected $description = 'Create a new flow class';
     protected $type = 'Flow';
     /**
      * @inheritDoc

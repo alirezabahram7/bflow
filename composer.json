@@ -21,7 +21,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "BFlows\\Tests" : "tests"
+            "BFlow\\Tests\\" : "tests/"
         }
     },
     "extra": {
