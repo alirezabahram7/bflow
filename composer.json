@@ -1,6 +1,15 @@
 {
     "name": "behamin/bflow",
     "description": "a package that helps to implement user flow in laravel projects",
+    "keywords": [
+        "behamin",
+        "user-flow",
+        "user-state",
+        "laravel",
+        "flowchart",
+        "redirect",
+        "next"
+    ],
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -13,15 +22,15 @@
             "email": "hamed.alizadeq@gamil.com"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "BFlow\\": "src/"
+            "Behamin\\BFlow\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "BFlow\\Tests\\" : "tests/"
+            "Behamin\\BFlow\\Tests\\" : "tests/"
         }
     },
     "extra": {
