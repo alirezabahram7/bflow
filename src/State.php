@@ -17,8 +17,7 @@ abstract class State
     const YES = 'yes';
     const NO = 'no';
     public static $arguments;
-    public static $currentFlowClassName;
-    public static $userId;
+
     public $next = null;
 
     public function getThis()
