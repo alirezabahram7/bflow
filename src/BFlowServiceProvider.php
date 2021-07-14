@@ -20,6 +20,14 @@ class BFlowServiceProvider extends ServiceProvider
                     StateMakeCommand::class
                 ]
             );
+            $this->publishes(
+                [
+                    __DIR__ . '/../config/bflow.php' => config_path(
+                        'bflow.php'
+                    )
+                ],
+                'config'
+            );
         }
     }
 
