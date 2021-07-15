@@ -6,10 +6,11 @@ namespace BFlow\Console;
 
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 class FlowMakeCommand extends GeneratorCommand
 {
-    protected $signature = 'make:flow {name}'; //type
+    protected $name = 'make:flow';
     protected $description = 'Create a new flow class';
     protected $type = 'Flow';
     /**
@@ -17,7 +18,7 @@ class FlowMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__ . '/stubs/flow.php.stub';
+        return __DIR__ . '/stubs/flow.stub';
     }
 
     /**
@@ -34,5 +35,21 @@ class FlowMakeCommand extends GeneratorCommand
         return [
             ['name', InputArgument::REQUIRED, 'The name of the Flow class.'],
         ];
+    }
+
+    protected function getOptions()
+    {
+        return [
+            ['main', 'mn', InputOption::VALUE_NONE, 'A property for definition a main flow.'],
+        ];
+    }
+
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
+        if($stub) {
+            $isMain = (bool)$this->option('main') ? 'true' : 'false';
+            return str_replace(['{{ isMain }}', '{{isMain}}'], $isMain, $stub);
+        }
     }
 }
