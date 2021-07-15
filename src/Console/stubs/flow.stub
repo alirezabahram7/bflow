@@ -2,11 +2,11 @@
 
 namespace {{ namespace }};
 
-use BFlow\Flow;
+use Behamin\BFlow\Flow;
 
 class {{ class }} extends Flow
 {
-    protected $isMain = {{ is_main }};
+    protected $isMain = {{ isMain }};
     protected $isDependent = false;
 
     public function __construct()
