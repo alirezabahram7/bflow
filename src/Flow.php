@@ -1,10 +1,10 @@
 <?php
 
 
-namespace BFlow;
+namespace Behamin\BFlow;
 
 
-use BFlow\Traits\FlowTrait;
+use Behamin\BFlow\Traits\FlowTrait;
 
 abstract class Flow
 {

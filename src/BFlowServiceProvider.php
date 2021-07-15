@@ -1,11 +1,11 @@
 <?php
 
-namespace BFlow;
+namespace Behamin\BFlow;
 
 
-use BFlow\Console\FlowMakeCommand;
-use BFlow\Console\StateMakeCommand;
-use BFlow\Facades\BFlow;
+use Behamin\BFlow\Console\FlowMakeCommand;
+use Behamin\BFlow\Console\StateMakeCommand;
+use Behamin\BFlow\Facades\BFlow;
 use Illuminate\Support\ServiceProvider;
 
 class BFlowServiceProvider extends ServiceProvider
