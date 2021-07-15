@@ -7,7 +7,7 @@ use Behamin\BFlow\Flow;
 class {{ class }} extends Flow
 {
     protected $isMain = {{ isMain }};
-    protected $isDependent = false;
+    protected $isDependent = {{ isDependent }};
 
     public function __construct()
     {
