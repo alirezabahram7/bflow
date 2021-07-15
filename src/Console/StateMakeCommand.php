@@ -58,7 +58,7 @@ class StateMakeCommand extends GeneratorCommand
         $className = $this->argument('name') ?? null;
         if($stub and $className){
             $stateType = strtoupper($this->option('type'));
-            $stateType = in_array($stateType, ['DISPLAY', 'DECISION', 'ACTION', 'TERMINATOR']) ? $stateType : 'DISPLAY';
+            $stateType = in_array($stateType, ['DISPLAY', 'DECISION', 'ACTION', 'TERMINAL']) ? $stateType : 'DISPLAY';
             $stub = str_replace(['{{ function }}', '{{function}}'], lcfirst($className), $stub);
             return str_replace(['{{ type }}', '{{type}}'], 'State::' . $stateType, $stub);
         }
