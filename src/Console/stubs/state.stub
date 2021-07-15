@@ -2,7 +2,7 @@
 
 namespace {{ namespace }};
 
-use BFlow\State;
+use Behamin\\BFlow\State;
 
 class {{ class }} extends State
 {
