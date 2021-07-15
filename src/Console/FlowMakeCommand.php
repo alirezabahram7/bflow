@@ -41,6 +41,7 @@ class FlowMakeCommand extends GeneratorCommand
     {
         return [
             ['main', 'mn', InputOption::VALUE_NONE, 'A property for definition a main flow.'],
+            ['dependent', 'dp', InputOption::VALUE_REQUIRED, 'A boolean property that Specifies this is a dependent flow as a auxiliary.'],
         ];
     }
 
@@ -49,7 +50,11 @@ class FlowMakeCommand extends GeneratorCommand
         $stub = parent::buildClass($name);
         if($stub) {
             $isMain = (bool)$this->option('main') ? 'true' : 'false';
-            return str_replace(['{{ isMain }}', '{{isMain}}'], $isMain, $stub);
+            $isDependent = $this->option('dependent');
+            $isDependent = ($isDependent == 'true' or $isDependent>0) ? 'true' : 'false';
+            $isDependent = $isMain=='true' ? 'false' : $isDependent;
+            $stub = str_replace(['{{ isMain }}', '{{isMain}}'], $isMain, $stub);
+            return str_replace(['{{ isDependent }}', '{{isDependent}}'], $isDependent, $stub);
         }
     }
 }
