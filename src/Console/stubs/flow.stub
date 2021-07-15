@@ -6,7 +6,7 @@ use BFlow\Flow;
 
 class {{ class }} extends Flow
 {
-    protected $isMain = true;
+    protected $isMain = {{ is_main }};
     protected $isDependent = false;
 
     public function __construct()

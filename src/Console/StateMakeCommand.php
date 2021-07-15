@@ -7,10 +7,11 @@ namespace BFlow\Console;
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use Illuminate\Support\Str;
 
 class StateMakeCommand extends GeneratorCommand
 {
-    protected $signature = 'make:state {name} {--type=display}';
+    protected $name = 'make:state';
     protected $description = 'Create a new state class';
     protected $type = "State";
 
@@ -19,7 +20,10 @@ class StateMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__ . '/stubs/state.php.stub';
+        if (in_array(strtolower($this->option('type')), ['decision', 'action'])) {
+            return __DIR__.'/stubs/functional.state.stub';
+        }
+        return __DIR__.'/stubs/state.stub';
     }
 
     /**
@@ -41,11 +45,21 @@ class StateMakeCommand extends GeneratorCommand
         ];
     }
 
-    protected function getOptions(){
-        return[
+    protected function getOptions()
+    {
+        return [
             ['type', 'tp', InputOption::VALUE_REQUIRED, 'The Type of the state in the user-flow'],
         ];
     }
 
-
+    protected function buildClass($name)
+    {
+        $stub = parent::buildClass($name);
+        $className = $this->argument('name') ?? null;
+        if($stub and $className){
+            $stateType = $this->option('type') ?? 'display';
+            $stub = str_replace(['{{ function }}', '{{function}}'], lcfirst($className), $stub);
+            return str_replace(['{{ type }}', '{{type}}'], 'State::' . strtoupper($stateType), $stub);
+        }
+    }
 }

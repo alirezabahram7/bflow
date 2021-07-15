@@ -3,7 +3,6 @@
 namespace BFlow;
 
 
-use BFilters\Console\Filter;
 use BFlow\Console\FlowMakeCommand;
 use BFlow\Console\StateMakeCommand;
 use BFlow\Facades\BFlow;

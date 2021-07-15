@@ -1,0 +1,11 @@
+<?php
+
+namespace {{ namespace }};
+
+use BFlow\State;
+
+class {{ class }} extends State
+{
+    public $type = {{ type }};
+    // public $allowedCheckpoints = ['REG'];
+}
