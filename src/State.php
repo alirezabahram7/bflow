@@ -6,7 +6,11 @@ namespace BFlow;
 
 abstract class State
 {
-    public $name;
+    public const DISPLAY = 'display';
+    public const ACTION = 'action';
+    public const DECISION = 'decision';
+    public const TERMINAL = 'terminal';
+
     public $type;
 
     public $allowedCheckpoints;
