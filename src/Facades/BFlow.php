@@ -1,7 +1,7 @@
 <?php
 
 
-namespace BFlow\Facades;
+namespace Behamin\BFlow\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

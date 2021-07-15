@@ -1,7 +1,7 @@
 <?php
 
 
-namespace BFlow\Console;
+namespace Behamin\BFlow\Console;
 
 
 use Illuminate\Console\GeneratorCommand;

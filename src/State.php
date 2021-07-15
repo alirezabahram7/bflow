@@ -1,7 +1,7 @@
 <?php
 
 
-namespace BFlow;
+namespace Behamin\BFlow;
 
 
 abstract class State
