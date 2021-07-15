@@ -1,10 +1,10 @@
 <?php
 
 
-namespace BFlow\Traits;
+namespace Behamin\BFlow\Traits;
 
 
-use BFlow\Flow;
+use Behamin\BFlow\Flow;
 use Illuminate\Support\Facades\DB;
 
 trait FlowTrait
