@@ -1,12 +1,14 @@
 {
     "name": "behamin/bflow",
-    "description": "a package that helps to implement user flow in laravel projects",
+    "description": "a package that helps to implement user flow (ui/ux flow) in laravel projects",
     "keywords": [
         "behamin",
         "user-flow",
         "user-state",
         "laravel",
         "flowchart",
+        "ui-flow",
+        "ux-flow",
         "redirect",
         "next"
     ],
@@ -18,7 +20,7 @@
             "email": "alib327@gmail.com"
         },
         {
-            "name": "Hamed Alizade",
+            "name": "Hamed Alizade Qaramaleki",
             "email": "hamed.alizadeq@gamil.com"
         }
     ],
@@ -36,7 +38,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "BFlow\\BFlowServiceProvider"
+                "Behamin\\BFlow\\BFlowServiceProvider"
             ]
         }
     },
