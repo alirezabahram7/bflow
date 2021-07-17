@@ -12,21 +12,17 @@ class BFlowServiceProvider extends ServiceProvider
 {
     public function boot()
     {
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
         if ($this->app->runningInConsole()) {
-            $this->commands(
-                [
-                    FlowMakeCommand::class,
-                    StateMakeCommand::class
-                ]
-            );
-            $this->publishes(
-                [
-                    __DIR__ . '/../config/bflow.php' => config_path(
-                        'bflow.php'
-                    )
-                ],
-                'config'
-            );
+            $this->commands([
+                FlowMakeCommand::class,
+                StateMakeCommand::class
+            ]);
+
+            $this->publishes([
+                __DIR__ . '/../config/bflow.php' => config_path('bflow.php')
+            ], 'config');
         }
     }
 
