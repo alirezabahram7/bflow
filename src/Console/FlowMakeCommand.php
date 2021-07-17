@@ -54,7 +54,14 @@ class FlowMakeCommand extends GeneratorCommand
             $isDependent = ($isDependent == 'true' or $isDependent>0) ? 'true' : 'false';
             $isDependent = $isMain=='true' ? 'false' : $isDependent;
             $stub = str_replace(['{{ isMain }}', '{{isMain}}'], $isMain, $stub);
-            return str_replace(['{{ isDependent }}', '{{isDependent}}'], $isDependent, $stub);
+            $stub = str_replace(['{{ isDependent }}', '{{isDependent}}'], $isDependent, $stub);
+            if($isDependent !== 'true') {
+                $checkpoint = '$this->checkpoints = [ '.
+                    "// 'REG'   => ['description' => 'Primary step of register process' , 'next' => Welcome::class]," .
+                    '];';
+            }
+            $stub = str_replace(['{{ checkpoint }}', '{{checkpoint}}'], $checkpoint ?? '', $stub);
         }
+        return $stub;
     }
 }

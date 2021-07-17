@@ -12,12 +12,9 @@ class {{ class }} extends Flow
     public function __construct()
     {
         $this->flow = [
-            //
+            // states
         ];
 
-
-        $this->checkpoints = [
-           // 'REG'   => ['description' => 'Primary step of register process' , 'next' => DietType::class],
-        ];
+        {{ checkpoint }}
     }
 }
