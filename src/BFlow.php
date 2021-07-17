@@ -48,6 +48,9 @@ class BFlow
                 // stop or abort(404)
             }
             $currentState = self::callMethod(self::$userFlow->flow[$currentStateIndex],'getThis');
+            if(strtolower(self::$userFlow->source) == 'main') {
+                $nextStateIndex = $currentStateIndex;
+            }
             if($currentState->next) {
                 $nextStateIndex = self::getIndexOfState($currentState->next, self::$userFlow->flow);
             } else {
@@ -105,12 +108,13 @@ class BFlow
                 } elseif (self::$userFlow->state_type == self::ACTION) {
                     if(self::$userFlow->source != 'previous_flow') {
                         self::$userFlow->state = $nextStateName;
+                        self::$userFlow->source = 'db';
                     }
                 }
                 $nextStateCheckpoint = $stateObj->getCheckpoint() ?? $nextState->getCheckpoint();
             }
             else {
-                $nextStateCheckpoint = $nextState->getCheckpoint(); //  dangerous: don't set because set checkpoint without logic and checking
+                $nextStateCheckpoint = $nextState->getCheckpoint(); //  dangerous: don't set because checkpoint set without logic and checking
             }
 
             $flowName = self::$userFlow->flow_name;
