@@ -10,6 +10,10 @@ class {{ class }} extends State
 
     public function {{ function }}()
     {
-        // logic
+        // $example = self::$arguments['product_count'];
+        // if($product_count > 0) {
+        //     return View::class;
+        // }
+        // return Alert::class;
     }
 }
