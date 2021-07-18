@@ -8,18 +8,12 @@ class {{ class }} extends State
 {
     public $type = {{ type }};
 
-    public function __construct()
-    {
-        // $this->yes = View::class;
-        // $this->no = Alert::class;
-    }
-
     public function {{ function }}()
     {
         // $example = self::$arguments['product_count'];
         // if($product_count > 0) {
-        //     return self::YES;
+        //     return View::class;
         // }
-        // return self::NO;
+        // return Alert::class;
     }
 }

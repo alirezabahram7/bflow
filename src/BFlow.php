@@ -99,7 +99,10 @@ class BFlow
 
                 // get the result of the state function
                 if (self::$userFlow->state_type == self::DECISION) {
-                    if ( ! empty($result) and ! empty($nextState->$result)) {
+                    if(class_exists($result)) {
+                        $nextPlus1State = $result;
+                    }
+                    elseif ( ! empty($result) and ! empty($nextState->$result)) {
                         $nextPlus1State = $nextState->$result;
                     }
                     else {
