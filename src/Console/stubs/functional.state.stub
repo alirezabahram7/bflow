@@ -8,12 +8,6 @@ class {{ class }} extends State
 {
     public $type = {{ type }};
 
-    public function __construct()
-    {
-        // $this->yes = View::class;
-        // $this->no = Alert::class;
-    }
-
     public function {{ function }}()
     {
         // $example = self::$arguments['product_count'];
