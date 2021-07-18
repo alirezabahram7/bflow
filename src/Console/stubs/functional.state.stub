@@ -18,8 +18,8 @@ class {{ class }} extends State
     {
         // $example = self::$arguments['product_count'];
         // if($product_count > 0) {
-        //     return self::YES;
+        //     return View::class;
         // }
-        // return self::NO;
+        // return Alert::class;
     }
 }
