@@ -52,7 +52,7 @@ class BFlow
             if(strtolower(self::$userFlow->source) == 'main') {
                 $nextStateIndex = $currentStateIndex;
             }
-            if($currentState->next) {
+            if($currentState->next ?? false) {
                 $nextStateIndex = self::getIndexOfState($currentState->next, self::$userFlow->flow);
             } else {
                 $nextStateIndex = $currentStateIndex;
