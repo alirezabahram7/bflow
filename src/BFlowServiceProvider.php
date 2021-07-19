@@ -12,8 +12,6 @@ class BFlowServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-
         if ($this->app->runningInConsole()) {
             $this->commands([
                 FlowMakeCommand::class,
@@ -23,6 +21,13 @@ class BFlowServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../config/bflow.php' => config_path('bflow.php')
             ], 'config');
+
+            if (! class_exists('CreateUserCheckpointTable')) {
+                $this->publishes([
+                    __DIR__ . '/../database/migrations/create_user_checkpoint_table.php.stub' =>
+                        database_path('migrations/' . date('Y_m_d_His', time()) . '_create_user_checkpoint_table.php'),
+                ], 'migrations');
+            }
         }
     }
 
