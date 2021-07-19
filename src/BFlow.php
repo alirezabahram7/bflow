@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class BFlow
 {
-
     use FlowTrait;
 
+    public const FLOW_NAMESPACE = 'App\Flows';
+    
     public const DISPLAY = 'display';
     public const ACTION = 'action';
     public const DECISION = 'decision';
@@ -162,11 +163,11 @@ class BFlow
         }
         $userFlow = $userDBFlow ?? $userMainFlow ?? $userDefaultFlow;
 
-        $flowClassName = __NAMESPACE__ .'\\'. $userFlow->flow_name;
+        $flowClassName = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
         $flowClass = self::callMethod($flowClassName, 'getThis');
         $flow = $flowClass->getFlow();
         if ( ! empty($userDBFlow)) {
-            $stateAddress = empty($state) ? $flow[0] : __NAMESPACE__ .'\\States\\'. self::toPascalCase($state);
+            $stateAddress = empty($state) ? $flow[0] : self::FLOW_NAMESPACE .'\\States\\'. self::toPascalCase($state);
         } else {
             $stateAddress = $flowClass->getCheckpoints()[strtoupper($userFlow->checkpoint)]['next'] ?? $flow[0];
         }
