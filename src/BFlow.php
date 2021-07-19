@@ -103,11 +103,12 @@ class BFlow
                     if(class_exists($result)) {
                         $nextPlus1State = $result;
                     }
-                    elseif ( ! empty($result) and ! empty($nextState->$result)) {
+                    elseif ( ! empty($result) and ! empty($nextState->$result) and class_exists($nextState->$result)) {
                         $nextPlus1State = $nextState->$result;
                     }
                     else {
-                        self::$userFlow->state = $nextStateName; // check
+                        $responseMessage = "TypeError: Return value of $nextStateAddress must be of the type class address, incorrect value returned!";
+                        throw new \TypeError($responseMessage, 500);
                     }
                 } elseif (self::$userFlow->state_type == self::ACTION) {
                     if(self::$userFlow->source != 'previous_flow') {
