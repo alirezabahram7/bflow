@@ -135,7 +135,7 @@ class BFlow
 //            print_r ($nextPlus1State);
         } while (in_array($nextState->type,[self::DECISION, self::ACTION]));
 
-        if(self::$userFlow->checkpoint and self::$arguments['user_id']) {
+        if(self::$userFlow->checkpoint and (self::$arguments['user_id'] ?? false)) {
             self::setUserCheckpoint();
         }
         return $next;
