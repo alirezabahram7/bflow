@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class BFlow
 {
-
     use FlowTrait;
 
+    public const FLOW_NAMESPACE = 'App\Flows';
+    
     public const DISPLAY = 'display';
     public const ACTION = 'action';
     public const DECISION = 'decision';
@@ -51,7 +52,7 @@ class BFlow
             if(strtolower(self::$userFlow->source) == 'main') {
                 $nextStateIndex = $currentStateIndex;
             }
-            if($currentState->next) {
+            if($currentState->next ?? false) {
                 $nextStateIndex = self::getIndexOfState($currentState->next, self::$userFlow->flow);
             } else {
                 $nextStateIndex = $currentStateIndex;
@@ -102,11 +103,12 @@ class BFlow
                     if(class_exists($result)) {
                         $nextPlus1State = $result;
                     }
-                    elseif ( ! empty($result) and ! empty($nextState->$result)) {
+                    elseif ( ! empty($result) and ! empty($nextState->$result) and class_exists($nextState->$result)) {
                         $nextPlus1State = $nextState->$result;
                     }
                     else {
-                        self::$userFlow->state = $nextStateName; // check
+                        $responseMessage = "TypeError: Return value of $nextStateAddress must be of the type class address, incorrect value returned!";
+                        throw new \TypeError($responseMessage, 500);
                     }
                 } elseif (self::$userFlow->state_type == self::ACTION) {
                     if(self::$userFlow->source != 'previous_flow') {
@@ -134,7 +136,7 @@ class BFlow
 //            print_r ($nextPlus1State);
         } while (in_array($nextState->type,[self::DECISION, self::ACTION]));
 
-        if(self::$userFlow->checkpoint and self::$arguments['user_id']) {
+        if(self::$userFlow->checkpoint and (self::$arguments['user_id'] ?? false)) {
             self::setUserCheckpoint();
         }
         return $next;
@@ -162,11 +164,11 @@ class BFlow
         }
         $userFlow = $userDBFlow ?? $userMainFlow ?? $userDefaultFlow;
 
-        $flowClassName = __NAMESPACE__ .'\\'. $userFlow->flow_name;
+        $flowClassName = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
         $flowClass = self::callMethod($flowClassName, 'getThis');
         $flow = $flowClass->getFlow();
-        if ( ! empty($userDBFlow)) {
-            $stateAddress = empty($state) ? $flow[0] : __NAMESPACE__ .'\\States\\'. self::toPascalCase($state);
+        if ( ! empty($userDBFlow) or ! empty($userDefaultFlow)) {
+            $stateAddress = empty($state) ? $flow[0] : self::FLOW_NAMESPACE .'\\States\\'. self::toPascalCase($state);
         } else {
             $stateAddress = $flowClass->getCheckpoints()[strtoupper($userFlow->checkpoint)]['next'] ?? $flow[0];
         }
