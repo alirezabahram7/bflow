@@ -5,6 +5,7 @@ namespace Behamin\BFlow;
 
 use Behamin\BFlow\State;
 use Behamin\BFlow\Traits\FlowTrait;
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
@@ -206,11 +207,16 @@ class BFlow
 
     /**
      * @return object
+     * @throws Exception
      */
     private static function getDefaultFlow() : object
     {
         $defaultFlow = config('bflow.default_flow');
-        $flowName = substr($defaultFlow, strripos($defaultFlow,'\\') + 1);
+        if( empty($defaultFlow)) {
+            $responseMessage = 'Default flow in bflow.php in config folder is not set!';
+            throw new Exception($responseMessage, 500);
+        }
+        $flowName = substr($defaultFlow, strripos($defaultFlow,'\\'));
         return (object)[
             'flow_name' => $flowName,
             'previous_checkpoint'=>null,
