@@ -12,7 +12,8 @@ class BFlow
 {
     use FlowTrait;
 
-    public const FLOW_NAMESPACE = 'App\Flows';
+    public const FLOW_NAMESPACE = 'App\Http\BFlow\Flows';
+    public const STATE_NAMESPACE = 'App\Http\BFlow\States';
     
     public const DISPLAY = 'display';
     public const ACTION = 'action';
@@ -168,7 +169,7 @@ class BFlow
         $flowClass = self::callMethod($flowClassName, 'getThis');
         $flow = $flowClass->getFlow();
         if ( ! empty($userDBFlow) or ! empty($userDefaultFlow)) {
-            $stateAddress = empty($state) ? $flow[0] : self::FLOW_NAMESPACE .'\\States\\'. self::toPascalCase($state);
+            $stateAddress = empty($state) ? $flow[0] : self::STATE_NAMESPACE .'\\'. self::toPascalCase($state);
         } else {
             $stateAddress = $flowClass->getCheckpoints()[strtoupper($userFlow->checkpoint)]['next'] ?? $flow[0];
         }
