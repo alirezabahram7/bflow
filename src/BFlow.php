@@ -57,7 +57,7 @@ class BFlow
                 $nextStateIndex = self::getIndexOfState($currentState->next, self::$userFlow->flow);
             } else {
                 $nextStateIndex = $currentStateIndex;
-                if (strtolower(self::$userFlow->source) == 'db') {
+                if (in_array(strtolower(self::$userFlow->source), ['db', 'default'])) {
                     $nextStateIndex = $currentStateIndex + 1;
                 } elseif (strtolower(self::$userFlow->source) == 'previous_flow') { // when developer use jump function
                     self::$userFlow->source = 'db';
@@ -123,7 +123,7 @@ class BFlow
                 $nextStateCheckpoint = $nextState->getCheckpoint(); //  dangerous: don't set because checkpoint set without logic and checking
             }
 
-            $flowName = self::$userFlow->flow_name;
+            $flowName = lcfirst(self::$userFlow->flow_name);
             $next = $flowName . '/' . self::toUrlFormat($nextStateName);
             if ($nextState->type == self::TERMINAL) { $next=''; }
 
