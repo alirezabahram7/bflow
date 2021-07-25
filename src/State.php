@@ -23,6 +23,7 @@ abstract class State
     public static $arguments;
 
     public $next = null;
+    public $prefix = '';
 
     public function getThis()
     {
