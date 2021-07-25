@@ -104,6 +104,9 @@ class BFlow
                     elseif ( ! empty($result) and ! empty($nextState->$result) and class_exists($nextState->$result)) {
                         $nextPlus1State = $nextState->$result;
                     }
+                    elseif($result == null or $result == '') {
+                        $nextStateName = null;
+                    }
                     else {
                         $responseMessage = "TypeError: Return value of $nextStateAddress must be of the type class address, incorrect value returned!";
                         throw new \TypeError($responseMessage, 500);
@@ -122,7 +125,7 @@ class BFlow
 
             $flowName = lcfirst(self::$userFlow->flow_name);
             $next = $flowName . '/' . $nextState->prefix . self::toUrlFormat($nextStateName);
-            if ($nextState->type == self::TERMINAL) { $next=''; }
+            if ($nextState->type == self::TERMINAL or empty($nextStateName)) { $next=''; }
 
             $nextCheckpoint = $nextStateCheckpoint ?? self::$userFlow->checkpoint;
             if ($currentCheckpoint != $nextCheckpoint) {
@@ -132,7 +135,7 @@ class BFlow
 
 //            print_r(self::$userFlow);
 //            print_r ($nextPlus1State);
-        } while (in_array($nextState->type,[self::DECISION, self::ACTION]));
+        } while (in_array($nextState->type,[self::DECISION, self::ACTION]) and ! empty($nextStateName));
 
         if(self::$userFlow->checkpoint and (self::$arguments['user_id'] ?? false)) {
             self::setUserCheckpoint();
