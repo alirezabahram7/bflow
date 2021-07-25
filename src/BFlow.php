@@ -123,8 +123,10 @@ class BFlow
                 $nextStateCheckpoint = $nextState->getCheckpoint(); //  dangerous: don't set because checkpoint set without logic and checking
             }
 
+
+
             $flowName = lcfirst(self::$userFlow->flow_name);
-            $next = $flowName . '/' . $nextState->prefix . self::toUrlFormat($nextStateName);
+            $next = $flowName . '/' . ($nextState->prefix ?? '') . self::toUrlFormat($nextStateName);
             if ($nextState->type == self::TERMINAL or empty($nextStateName)) { $next=''; }
 
             $nextCheckpoint = $nextStateCheckpoint ?? self::$userFlow->checkpoint;
@@ -134,6 +136,7 @@ class BFlow
             }
 
 //            print_r(self::$userFlow);
+//            echo '<br>'.'<br>';
 //            print_r ($nextPlus1State);
         } while (in_array($nextState->type,[self::DECISION, self::ACTION]) and ! empty($nextStateName));
 
