@@ -71,7 +71,11 @@ class BFlow
             }
 
             if ($nextState->allowedCheckpoints and ! in_array(self::$userFlow->checkpoint, $nextState->allowedCheckpoints)) {
-                return Response('You do not have access rights to the content!', 403);
+                $responseMessage = 'You do not have access rights to the content!'."\n".
+                                    'your checkpoint = ' . self::$userFlow->checkpoint."\n".
+                                    'requested flow name = '. self::$userFlow->flow_name."\n".
+                                    'requested state = '. self::getClassName($nextStateAddress);
+                return Response($responseMessage, 403);
             }
 
             // assign next state values into $userFlow
