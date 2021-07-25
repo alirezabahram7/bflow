@@ -5,6 +5,7 @@ namespace Behamin\BFlow;
 
 use Behamin\BFlow\State;
 use Behamin\BFlow\Traits\FlowTrait;
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
@@ -26,30 +27,26 @@ class BFlow
     protected static $userFlow;
 
 
-//    public static function getState($userId, $nextState, $arguments) : string
-//    {
-//
-//    }
 
     /**
      * @param $currentState
      * @param $arguments
      * @return string
      */
-    public static function getNextState($currentState, $arguments) : string
+    public static function getNextState($previousState, $arguments) : string
     {
         self::$arguments = $arguments;
-        self::$userFlow = self::detectUserFlow(self::$arguments['user_id'] ?? null, $currentState);
+        self::$userFlow = self::detectUserFlow(self::$arguments['user_id'] ?? null, $previousState);
 
         $nextPlus1State = null;
         do {
             $currentStateIndex = self::getIndexOfState(self::$userFlow->state_address, self::$userFlow->flow);
             if ($currentStateIndex === false) {
                 abort(404);
-//                return 'This page is not exist!';
-                // stop or abort(404)
             }
             $currentState = self::callMethod(self::$userFlow->flow[$currentStateIndex],'getThis');
+
+
             if(strtolower(self::$userFlow->source) == 'main') {
                 $nextStateIndex = $currentStateIndex;
             }
@@ -63,24 +60,18 @@ class BFlow
                     self::$userFlow->source = 'db';
                 }
             }
-            if ( ! $nextPlus1State) {
-                $nextState = self::callMethod(self::$userFlow->flow[$nextStateIndex], 'getThis');
-                $nextStateAddress = self::$userFlow->flow[$nextStateIndex];
-            } else {
-                $nextState = self::callMethod($nextPlus1State, 'getThis');
-                $nextStateAddress = $nextPlus1State;
-                $nextPlus1State = null;
-            }
+
+            $nextState = ( ! $nextPlus1State) ? self::$userFlow->flow[$nextStateIndex] : $nextPlus1State;
+            $nextStateAddress = $nextState;
+            $nextState = self::callMethod($nextState, 'getThis');
+            ($nextPlus1State) ? $nextPlus1State = null : null;
 
             if (empty($nextState)) {
                 abort(404);
-//                return 'This page is not exist!';
-                // stop or abort(404)
             }
 
             if ($nextState->allowedCheckpoints and ! in_array(self::$userFlow->checkpoint, $nextState->allowedCheckpoints)) {
                 return Response('You do not have access rights to the content!', 403);
-                // stop or move to a state by checkpoint
             }
 
             // assign next state values into $userFlow
@@ -95,8 +86,14 @@ class BFlow
 
                 // exchange properties value between $this and next state
                 State::$arguments = self::$arguments;
+
+                if ( ! class_exists($nextStateAddress)) {
+                    $responseMessage = 'Error: There is not class of ' .$nextStateAddress. '!';
+                    throw new \Exception($responseMessage, 500);
+                }
                 $stateObj = new $nextStateAddress();
                 $result = call_user_func(array($stateObj, $nextStateName));
+
                 self::$arguments = State::$arguments;
 
                 // get the result of the state function
@@ -106,6 +103,9 @@ class BFlow
                     }
                     elseif ( ! empty($result) and ! empty($nextState->$result) and class_exists($nextState->$result)) {
                         $nextPlus1State = $nextState->$result;
+                    }
+                    elseif($result == null or $result == '') {
+                        $nextStateName = null;
                     }
                     else {
                         $responseMessage = "TypeError: Return value of $nextStateAddress must be of the type class address, incorrect value returned!";
@@ -123,9 +123,11 @@ class BFlow
                 $nextStateCheckpoint = $nextState->getCheckpoint(); //  dangerous: don't set because checkpoint set without logic and checking
             }
 
+
+
             $flowName = lcfirst(self::$userFlow->flow_name);
-            $next = $flowName . '/' . self::toUrlFormat($nextStateName);
-            if ($nextState->type == self::TERMINAL) { $next=''; }
+            $next = $flowName . '/' . ($nextState->prefix ?? '') . self::toUrlFormat($nextStateName);
+            if ($nextState->type == self::TERMINAL or empty($nextStateName)) { $next=''; }
 
             $nextCheckpoint = $nextStateCheckpoint ?? self::$userFlow->checkpoint;
             if ($currentCheckpoint != $nextCheckpoint) {
@@ -134,8 +136,9 @@ class BFlow
             }
 
 //            print_r(self::$userFlow);
+//            echo '<br>'.'<br>';
 //            print_r ($nextPlus1State);
-        } while (in_array($nextState->type,[self::DECISION, self::ACTION]));
+        } while (in_array($nextState->type,[self::DECISION, self::ACTION]) and ! empty($nextStateName));
 
         if(self::$userFlow->checkpoint and (self::$arguments['user_id'] ?? false)) {
             self::setUserCheckpoint();
@@ -168,7 +171,7 @@ class BFlow
         $flowClassName = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
         $flowClass = self::callMethod($flowClassName, 'getThis');
         $flow = $flowClass->getFlow();
-        if ( ! empty($userDBFlow) or ! empty($userDefaultFlow)) {
+        if ( ! empty($userDBFlow) or ( ! empty($userDefaultFlow) and ($flowTitle==$userFlow->flow_name))) {
             $stateAddress = empty($state) ? $flow[0] : self::STATE_NAMESPACE .'\\'. self::toPascalCase($state);
         } else {
             $stateAddress = $flowClass->getCheckpoints()[strtoupper($userFlow->checkpoint)]['next'] ?? $flow[0];
@@ -210,7 +213,11 @@ class BFlow
     private static function getDefaultFlow() : object
     {
         $defaultFlow = config('bflow.default_flow');
-        $flowName = substr($defaultFlow, strripos($defaultFlow,'\\') + 1);
+        if( empty($defaultFlow)) {
+            $responseMessage = 'Default flow in bflow.php in config folder is not set!';
+            throw new \Exception($responseMessage, 500);
+        }
+        $flowName = substr($defaultFlow, strripos($defaultFlow,'\\'));
         return (object)[
             'flow_name' => $flowName,
             'previous_checkpoint'=>null,
@@ -240,7 +247,7 @@ class BFlow
      * @param $flowName
      * @return mixed|null
      */
-    public static function getUserCheckpoint($userId, $flowName)
+    public static function getUserCheckpoint($userId, $flowName = null)
     {
         if (empty($userId)) return null;
         return DB::table('user_checkpoint')->where('user_id', $userId)->where('flow_name', $flowName)->get()->first();
