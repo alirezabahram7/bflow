@@ -27,30 +27,26 @@ class BFlow
     protected static $userFlow;
 
 
-//    public static function getState($userId, $nextState, $arguments) : string
-//    {
-//
-//    }
 
     /**
      * @param $currentState
      * @param $arguments
      * @return string
      */
-    public static function getNextState($currentState, $arguments) : string
+    public static function getNextState($previousState, $arguments) : string
     {
         self::$arguments = $arguments;
-        self::$userFlow = self::detectUserFlow(self::$arguments['user_id'] ?? null, $currentState);
+        self::$userFlow = self::detectUserFlow(self::$arguments['user_id'] ?? null, $previousState);
 
         $nextPlus1State = null;
         do {
             $currentStateIndex = self::getIndexOfState(self::$userFlow->state_address, self::$userFlow->flow);
             if ($currentStateIndex === false) {
                 abort(404);
-//                return 'This page is not exist!';
-                // stop or abort(404)
             }
             $currentState = self::callMethod(self::$userFlow->flow[$currentStateIndex],'getThis');
+
+
             if(strtolower(self::$userFlow->source) == 'main') {
                 $nextStateIndex = $currentStateIndex;
             }
@@ -64,24 +60,18 @@ class BFlow
                     self::$userFlow->source = 'db';
                 }
             }
-            if ( ! $nextPlus1State) {
-                $nextState = self::callMethod(self::$userFlow->flow[$nextStateIndex], 'getThis');
-                $nextStateAddress = self::$userFlow->flow[$nextStateIndex];
-            } else {
-                $nextState = self::callMethod($nextPlus1State, 'getThis');
-                $nextStateAddress = $nextPlus1State;
-                $nextPlus1State = null;
-            }
+
+            $nextState = ( ! $nextPlus1State) ? self::$userFlow->flow[$nextStateIndex] : $nextPlus1State;
+            $nextStateAddress = $nextState;
+            $nextState = self::callMethod($nextState, 'getThis');
+            ($nextPlus1State) ? $nextPlus1State = null : null;
 
             if (empty($nextState)) {
                 abort(404);
-//                return 'This page is not exist!';
-                // stop or abort(404)
             }
 
             if ($nextState->allowedCheckpoints and ! in_array(self::$userFlow->checkpoint, $nextState->allowedCheckpoints)) {
                 return Response('You do not have access rights to the content!', 403);
-                // stop or move to a state by checkpoint
             }
 
             // assign next state values into $userFlow
@@ -98,6 +88,7 @@ class BFlow
                 State::$arguments = self::$arguments;
                 $stateObj = new $nextStateAddress();
                 $result = call_user_func(array($stateObj, $nextStateName));
+
                 self::$arguments = State::$arguments;
 
                 // get the result of the state function
@@ -207,14 +198,13 @@ class BFlow
 
     /**
      * @return object
-     * @throws Exception
      */
     private static function getDefaultFlow() : object
     {
         $defaultFlow = config('bflow.default_flow');
         if( empty($defaultFlow)) {
             $responseMessage = 'Default flow in bflow.php in config folder is not set!';
-            throw new Exception($responseMessage, 500);
+            throw new \Exception($responseMessage, 500);
         }
         $flowName = substr($defaultFlow, strripos($defaultFlow,'\\'));
         return (object)[
@@ -246,7 +236,7 @@ class BFlow
      * @param $flowName
      * @return mixed|null
      */
-    public static function getUserCheckpoint($userId, $flowName)
+    public static function getUserCheckpoint($userId, $flowName = null)
     {
         if (empty($userId)) return null;
         return DB::table('user_checkpoint')->where('user_id', $userId)->where('flow_name', $flowName)->get()->first();
