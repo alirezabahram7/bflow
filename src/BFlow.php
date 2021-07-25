@@ -86,6 +86,11 @@ class BFlow
 
                 // exchange properties value between $this and next state
                 State::$arguments = self::$arguments;
+
+                if ( ! class_exists($nextStateAddress)) {
+                    $responseMessage = 'Error: There is not class of ' .$nextStateAddress. '!';
+                    throw new \Exception($responseMessage, 500);
+                }
                 $stateObj = new $nextStateAddress();
                 $result = call_user_func(array($stateObj, $nextStateName));
 
