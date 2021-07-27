@@ -171,7 +171,7 @@ class BFlow
         $flowClassName = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
         $flowClass = self::callMethod($flowClassName, 'getThis');
         $flow = $flowClass->getFlow();
-        if ( ! empty($userDBFlow) or ( ! empty($userDefaultFlow) and ($flowTitle==$userFlow->flow_name))) {
+        if ( ! empty($userDBFlow) or ( ! empty($userDefaultFlow) and (strtolower($flowTitle) == strtolower($userFlow->flow_name)))) {
             $stateAddress = empty($state) ? $flow[0] : self::STATE_NAMESPACE .'\\'. self::toPascalCase($state);
         } else {
             $stateAddress = $flowClass->getCheckpoints()[strtoupper($userFlow->checkpoint)]['next'] ?? $flow[0];
