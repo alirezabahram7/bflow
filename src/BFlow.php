@@ -254,38 +254,59 @@ class BFlow
     public static function getUserCheckpoint($userId, $flowName = null)
     {
         if (empty($userId)) return null;
-        return DB::table('user_checkpoint')->where('user_id', $userId)->where('flow_name', $flowName)->get()->first();
+        if(empty($flowName)) { $fieldName = 'is_main_flow'; $fieldValue = 1; }
+        else { $fieldName = 'flow_name'; $fieldValue = $flowName; }
+        return DB::table('user_checkpoint')->where('user_id', $userId)->where($fieldName, $fieldValue)->get()->first();
     }
 
 
     /**
      * @param null $userId
-     * @param null $isMain
-     * @param null $flowName
-     * @param null $previousCheckpoint
      * @param null $checkpoint
+     * @param null $flowName
      */
-    public static function setUserCheckpoint($userId = null, $isMain = null, $flowName = null, $previousCheckpoint = null, $checkpoint = null) : void
+    public static function setUserCheckpoint($userId = null, $checkpoint = null, string $flowName = null) : void
     {
-        if( ! $userId and ! $isMain and ! $flowName and ! $previousCheckpoint and ! $checkpoint) {
+        if( ! $userId) {
             $userId = self::$arguments['user_id'] ?? null;
             $isMain = self::$userFlow->is_main;
             $flowName = self::$userFlow->flow_name;
             $previousCheckpoint = self::$userFlow->previous_checkpoint;
             $checkpoint = self::$userFlow->checkpoint;
-        }
-
-        if ($isMain) { $conditions = ['user_id' => $userId, 'is_main_flow' => $isMain]; }
-        else { $conditions = ['user_id' => $userId, 'flow_name' => $flowName, 'is_main_flow' => $isMain]; }
-        DB::table('user_checkpoint')->updateOrInsert(
-            $conditions,
-            [
+            $values = [
                 'flow_name' => $flowName,
                 'previous_checkpoint' => $previousCheckpoint,
                 'checkpoint' => $checkpoint,
-                'is_main_flow' => $isMain
-            ]
-        );
+            ];
+        }
+        elseif($userId and $checkpoint) {
+            if (empty($flowName)) {
+                $isMain = true;
+            }
+            else {
+                $isMain = self::callMethod(self::FLOW_NAMESPACE . '\\' . $flowName, 'getIsMain');
+            }
+
+            $CurrentCheckpointInDB = self::getUserCheckpoint($userId, ( ! $isMain) ? $flowName : null)->checkpoint;
+            $values = [
+                'checkpoint' => $checkpoint,
+            ];
+            if ($CurrentCheckpointInDB != $checkpoint) {
+                $values = array_merge($values, [
+                    'previous_checkpoint' => $CurrentCheckpointInDB,
+                ]);
+            }
+            if ( ! empty($flowName)) {
+                $values = array_merge($values, [
+                    'flow_name' => $flowName,
+                ]);
+            }
+        }
+
+        if ($isMain) { $conditions = ['user_id' => $userId, 'is_main_flow' => true]; }
+        else { $conditions = ['user_id' => $userId, 'is_main_flow' => false, 'flow_name' => $flowName]; }
+
+        DB::table('user_checkpoint')->updateOrInsert($conditions, $values);
     }
 
     /**
