@@ -90,7 +90,7 @@ class BFlow
 
                 // exchange properties value between $this and next state
                 State::$arguments = self::$arguments;
-
+                State::$currentFlowAddress = self::$userFlow->flow_address;
                 if ( ! class_exists($nextStateAddress)) {
                     $responseMessage = 'Error: There is not class of ' .$nextStateAddress. '!';
                     throw new \Exception($responseMessage, 500);
@@ -172,8 +172,8 @@ class BFlow
         }
         $userFlow = $userDBFlow ?? $userMainFlow ?? $userDefaultFlow;
 
-        $flowClassName = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
-        $flowClass = self::callMethod($flowClassName, 'getThis');
+        $flowAddress = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
+        $flowClass = self::callMethod($flowAddress, 'getThis');
         $flow = $flowClass->getFlow();
         if ( ! empty($userDBFlow) or ( ! empty($userDefaultFlow) and ($flowTitle==$userFlow->flow_name))) {
             $stateAddress = empty($state) ? $flow[0] : self::STATE_NAMESPACE .'\\'. self::toPascalCase($state);
@@ -190,8 +190,9 @@ class BFlow
         }
         return (object)[
             'source' => $source,
-            'flow' => $flow,
             'flow_name' => $userFlow->flow_name,
+            'flow_address' => $flowAddress,
+            'flow' => $flow,
             'is_main' => $flowClass->getIsMain(),
             'previous_checkpoint'=> $userFlow->previous_checkpoint,
             'checkpoint' => strtoupper($userFlow->checkpoint),
