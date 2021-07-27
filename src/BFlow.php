@@ -126,8 +126,8 @@ class BFlow
 
 
             $flowName = lcfirst(self::$userFlow->flow_name);
-            $next = $flowName . '/' . ($nextState->prefix ?? '') . self::toUrlFormat($nextStateName);
             if ($nextState->type == self::TERMINAL or empty($nextStateName)) { $next=''; }
+            else { $next = $flowName . '/' . ($nextState->prefix ?? '') . self::toUrlFormat($nextStateName); }
 
             $nextCheckpoint = $nextStateCheckpoint ?? self::$userFlow->checkpoint;
             if ($currentCheckpoint != $nextCheckpoint) {
