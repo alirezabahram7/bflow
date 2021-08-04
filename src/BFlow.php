@@ -64,14 +64,21 @@ class BFlow
             $nextState = ( ! $nextPlus1State) ? self::$userFlow->flow[$nextStateIndex] : $nextPlus1State;
             $nextStateAddress = $nextState;
             $nextState = self::callMethod($nextState, 'getThis');
-            ($nextPlus1State) ? $nextPlus1State = null : null;
+
+            $nextPlus1State = null;
 
             if (empty($nextState)) {
                 abort(404);
             }
 
             if ($nextState->allowedCheckpoints and ! in_array(self::$userFlow->checkpoint, $nextState->allowedCheckpoints)) {
-                return Response('You do not have access rights to the content!', 403);
+//                $responseMessage = 'You do not have access rights to the content!'."\n".
+//                    'your checkpoint = ' . self::$userFlow->checkpoint."\n".
+//                    'requested flow name = '. self::$userFlow->flow_name."\n".
+//                    'requested state = '. self::getClassName($nextStateAddress);
+//                return Response($responseMessage, 403);
+                $nextStateAddress = self::detectStateByCheckpoint(self::callMethod(self::$userFlow->flow_address, 'getThis'), self::$userFlow->checkpoint);
+                $nextState = self::callMethod($nextStateAddress, 'getThis');
             }
 
             // assign next state values into $userFlow
@@ -86,7 +93,7 @@ class BFlow
 
                 // exchange properties value between $this and next state
                 State::$arguments = self::$arguments;
-
+                State::$currentFlowAddress = self::$userFlow->flow_address;
                 if ( ! class_exists($nextStateAddress)) {
                     $responseMessage = 'Error: There is not class of ' .$nextStateAddress. '!';
                     throw new \Exception($responseMessage, 500);
@@ -160,21 +167,21 @@ class BFlow
         $userDBFlow = self::getUserCheckpoint($userId, $flowName);
         if(empty($userDBFlow)) {
             $source = 'main';
-            $userMainFlow = self::getUserMainFlow($userId);
+            $userMainFlow = self::getMainUserFlow($userId);
             if (empty($userMainFlow)) {
                 $source = 'default';
-                $userDefaultFlow = self::getDefaultFlow();
+                $userDefaultFlow = self::getDefaultUserFlow();
             }
         }
         $userFlow = $userDBFlow ?? $userMainFlow ?? $userDefaultFlow;
 
-        $flowClassName = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
-        $flowClass = self::callMethod($flowClassName, 'getThis');
+        $flowAddress = self::FLOW_NAMESPACE .'\\'. $userFlow->flow_name;
+        $flowClass = self::callMethod($flowAddress, 'getThis');
         $flow = $flowClass->getFlow();
         if ( ! empty($userDBFlow) or ( ! empty($userDefaultFlow) and (strtolower($flowTitle) == strtolower($userFlow->flow_name)))) {
             $stateAddress = empty($state) ? $flow[0] : self::STATE_NAMESPACE .'\\'. self::toPascalCase($state);
         } else {
-            $stateAddress = $flowClass->getCheckpoints()[strtoupper($userFlow->checkpoint)]['next'] ?? $flow[0];
+            $stateAddress = self::detectStateByCheckpoint($flowClass, $userFlow->checkpoint);
         }
         $stateClass = self::callMethod($stateAddress, 'getThis');
         if ($stateClass === false) {
@@ -186,8 +193,9 @@ class BFlow
         }
         return (object)[
             'source' => $source,
-            'flow' => $flow,
             'flow_name' => $userFlow->flow_name,
+            'flow_address' => $flowAddress,
+            'flow' => $flow,
             'is_main' => $flowClass->getIsMain(),
             'previous_checkpoint'=> $userFlow->previous_checkpoint,
             'checkpoint' => strtoupper($userFlow->checkpoint),
@@ -201,18 +209,48 @@ class BFlow
      * @param $userId
      * @return mixed|null
      */
-    private static function getUserMainFlow($userId)
+    private static function getMainUserFlow($userId)
     {
         if (empty($userId)) return null;
         return DB::table('user_checkpoint')->where('user_id', $userId)->where('is_main_flow', 1)->get()->first();
     }
 
+    public static function getDefaultFlow()
+    {
+        return config('bflow.default_flow') ?? null;
+    }
+
+    public static function getDefaultCheckpoint()
+    {
+        return config('bflow.default_checkpoint') ?? null;
+    }
+
+    public static function detectStateByCheckpoint($flowClass, $checkpoint = null)
+    {
+        $defaultCheckpoint = BFlow::getDefaultFlow();
+        $checkpoint = ($checkpoint ?? $defaultCheckpoint) ?? null;
+        if (empty($checkpoint)) {
+            $responseMessage = 'Argument 2 and Default checkpoint in bflow.php are null!';
+            throw new \Exception($responseMessage, 500);
+        }
+        $checkpointArray = $flowClass->getCheckpoints()[strtoupper($checkpoint)] ?? null;
+        if(empty($checkpointArray)) {
+            if ($checkpoint) {
+                $responseMessage = $checkpoint .' not defined in '.get_class($flowClass).'->checkpoints array or \'next\' item not defined for this checkpoint!';
+            } else {
+                $responseMessage = $defaultCheckpoint .' not defined in '.get_class($flowClass).'->checkpoints array or \'next\' item not defined for this checkpoint!';
+            }
+            throw new \Exception($responseMessage, 500);
+        }
+        return ($checkpointArray['next'] ?? $flowClass->getFlow()[0]) ?? null;
+    }
+
     /**
      * @return object
      */
-    private static function getDefaultFlow() : object
+    private static function getDefaultUserFlow() : object
     {
-        $defaultFlow = config('bflow.default_flow');
+        $defaultFlow = self::getDefaultFlow();
         if( empty($defaultFlow)) {
             $responseMessage = 'Default flow in bflow.php in config folder is not set!';
             throw new \Exception($responseMessage, 500);
@@ -221,7 +259,7 @@ class BFlow
         return (object)[
             'flow_name' => $flowName,
             'previous_checkpoint'=>null,
-            'checkpoint' => config('bflow.default_checkpoint')
+            'checkpoint' => self::getDefaultCheckpoint()
         ];
     }
 
@@ -237,8 +275,9 @@ class BFlow
         self::$userFlow->source = 'previous_flow';
         self::$userFlow->flow = $flowClass->getFlow();
         self::$userFlow->flow_name = $flowName;
-        self::$userFlow->state_address = (array_search($state, $flowClass->getFlow()) !== false) ? $state : self::$userFlow->state = $flowClass->getFlow()[0];
+        self::$userFlow->state_address = ( ! empty($state)) ? $state : $flowClass->getFlow()[0];
         self::$userFlow->state = self::getClassName(self::$userFlow->state_address);
+        self::$userFlow->state_type = self::callMethod(self::$userFlow->state_address, 'getThis')->type;
     }
 
 
@@ -250,38 +289,59 @@ class BFlow
     public static function getUserCheckpoint($userId, $flowName = null)
     {
         if (empty($userId)) return null;
-        return DB::table('user_checkpoint')->where('user_id', $userId)->where('flow_name', $flowName)->get()->first();
+        if(empty($flowName)) { $fieldName = 'is_main_flow'; $fieldValue = 1; }
+        else { $fieldName = 'flow_name'; $fieldValue = $flowName; }
+        return DB::table('user_checkpoint')->where('user_id', $userId)->where($fieldName, $fieldValue)->get()->first();
     }
 
 
     /**
      * @param null $userId
-     * @param null $isMain
-     * @param null $flowName
-     * @param null $previousCheckpoint
      * @param null $checkpoint
+     * @param null $flowName
      */
-    public static function setUserCheckpoint($userId = null, $isMain = null, $flowName = null, $previousCheckpoint = null, $checkpoint = null) : void
+    public static function setUserCheckpoint($userId = null, $checkpoint = null, string $flowName = null) : void
     {
-        if( ! $userId and ! $isMain and ! $flowName and ! $previousCheckpoint and ! $checkpoint) {
+        if( ! $userId) {
             $userId = self::$arguments['user_id'] ?? null;
             $isMain = self::$userFlow->is_main;
             $flowName = self::$userFlow->flow_name;
             $previousCheckpoint = self::$userFlow->previous_checkpoint;
             $checkpoint = self::$userFlow->checkpoint;
-        }
-
-        if ($isMain) { $conditions = ['user_id' => $userId, 'is_main_flow' => $isMain]; }
-        else { $conditions = ['user_id' => $userId, 'flow_name' => $flowName, 'is_main_flow' => $isMain]; }
-        DB::table('user_checkpoint')->updateOrInsert(
-            $conditions,
-            [
+            $values = [
                 'flow_name' => $flowName,
                 'previous_checkpoint' => $previousCheckpoint,
                 'checkpoint' => $checkpoint,
-                'is_main_flow' => $isMain
-            ]
-        );
+            ];
+        }
+        elseif($userId and $checkpoint) {
+            if (empty($flowName)) {
+                $isMain = true;
+            }
+            else {
+                $isMain = self::callMethod(self::FLOW_NAMESPACE . '\\' . $flowName, 'getIsMain');
+            }
+
+            $CurrentCheckpointInDB = self::getUserCheckpoint($userId, ( ! $isMain) ? $flowName : null)->checkpoint;
+            $values = [
+                'checkpoint' => $checkpoint,
+            ];
+            if ($CurrentCheckpointInDB != $checkpoint) {
+                $values = array_merge($values, [
+                    'previous_checkpoint' => $CurrentCheckpointInDB,
+                ]);
+            }
+            if ( ! empty($flowName)) {
+                $values = array_merge($values, [
+                    'flow_name' => $flowName,
+                ]);
+            }
+        }
+
+        if ($isMain) { $conditions = ['user_id' => $userId, 'is_main_flow' => true]; }
+        else { $conditions = ['user_id' => $userId, 'is_main_flow' => false, 'flow_name' => $flowName]; }
+
+        DB::table('user_checkpoint')->updateOrInsert($conditions, $values);
     }
 
     /**

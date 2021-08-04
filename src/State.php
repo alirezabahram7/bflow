@@ -21,6 +21,7 @@ abstract class State
     const YES = 'yes';
     const NO = 'no';
     public static $arguments;
+    public static $currentFlowAddress;
 
     public $next = null;
     public $prefix = '';
