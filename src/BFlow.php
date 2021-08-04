@@ -178,7 +178,7 @@ class BFlow
         if ( ! empty($userDBFlow) or ( ! empty($userDefaultFlow) and (strtolower($flowTitle) == strtolower($userFlow->flow_name)))) {
             $stateAddress = empty($state) ? $flow[0] : self::STATE_NAMESPACE .'\\'. self::toPascalCase($state);
         } else {
-            $stateAddress = $flowClass->getCheckpoints()[strtoupper($userFlow->checkpoint)]['next'] ?? $flow[0];
+            $stateAddress = self::detectStateByCheckpoint($flowClass, $userFlow->checkpoint);
         }
         $stateClass = self::callMethod($stateAddress, 'getThis');
         if ($stateClass === false) {
@@ -212,12 +212,42 @@ class BFlow
         return DB::table('user_checkpoint')->where('user_id', $userId)->where('is_main_flow', 1)->get()->first();
     }
 
+    public static function getDefaultFlow()
+    {
+        return config('bflow.default_flow') ?? null;
+    }
+
+    public static function getDefaultCheckpoint()
+    {
+        return config('bflow.default_checkpoint') ?? null;
+    }
+
+    public static function detectStateByCheckpoint($flowClass, $checkpoint = null)
+    {
+        $defaultCheckpoint = BFlow::getDefaultFlow();
+        $checkpoint = ($checkpoint ?? $defaultCheckpoint) ?? null;
+        if (empty($checkpoint)) {
+            $responseMessage = 'Argument 2 and Default checkpoint in bflow.php are null!';
+            throw new \Exception($responseMessage, 500);
+        }
+        $checkpointArray = $flowClass->getCheckpoints()[strtoupper($checkpoint)] ?? null;
+        if(empty($checkpointArray)) {
+            if ($checkpoint) {
+                $responseMessage = $checkpoint .' not defined in '.get_class($flowClass).'->checkpoints array or \'next\' item not defined for this checkpoint!';
+            } else {
+                $responseMessage = $defaultCheckpoint .' not defined in '.get_class($flowClass).'->checkpoints array or \'next\' item not defined for this checkpoint!';
+            }
+            throw new \Exception($responseMessage, 500);
+        }
+        return ($checkpointArray['next'] ?? $flowClass->getFlow()[0]) ?? null;
+    }
+
     /**
      * @return object
      */
-    private static function getDefaultFlow() : object
+    private static function getDefaultUserFlow() : object
     {
-        $defaultFlow = config('bflow.default_flow');
+        $defaultFlow = self::getDefaultFlow();
         if( empty($defaultFlow)) {
             $responseMessage = 'Default flow in bflow.php in config folder is not set!';
             throw new \Exception($responseMessage, 500);
@@ -226,7 +256,7 @@ class BFlow
         return (object)[
             'flow_name' => $flowName,
             'previous_checkpoint'=>null,
-            'checkpoint' => config('bflow.default_checkpoint')
+            'checkpoint' => self::getDefaultCheckpoint()
         ];
     }
 
