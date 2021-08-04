@@ -164,10 +164,10 @@ class BFlow
         $userDBFlow = self::getUserCheckpoint($userId, $flowName);
         if(empty($userDBFlow)) {
             $source = 'main';
-            $userMainFlow = self::getUserMainFlow($userId);
+            $userMainFlow = self::getMainUserFlow($userId);
             if (empty($userMainFlow)) {
                 $source = 'default';
-                $userDefaultFlow = self::getDefaultFlow();
+                $userDefaultFlow = self::getDefaultUserFlow();
             }
         }
         $userFlow = $userDBFlow ?? $userMainFlow ?? $userDefaultFlow;
@@ -206,7 +206,7 @@ class BFlow
      * @param $userId
      * @return mixed|null
      */
-    private static function getUserMainFlow($userId)
+    private static function getMainUserFlow($userId)
     {
         if (empty($userId)) return null;
         return DB::table('user_checkpoint')->where('user_id', $userId)->where('is_main_flow', 1)->get()->first();
