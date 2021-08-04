@@ -64,18 +64,21 @@ class BFlow
             $nextState = ( ! $nextPlus1State) ? self::$userFlow->flow[$nextStateIndex] : $nextPlus1State;
             $nextStateAddress = $nextState;
             $nextState = self::callMethod($nextState, 'getThis');
-            ($nextPlus1State) ? $nextPlus1State = null : null;
+
+            $nextPlus1State = null;
 
             if (empty($nextState)) {
                 abort(404);
             }
 
             if ($nextState->allowedCheckpoints and ! in_array(self::$userFlow->checkpoint, $nextState->allowedCheckpoints)) {
-                $responseMessage = 'You do not have access rights to the content!'."\n".
-                                    'your checkpoint = ' . self::$userFlow->checkpoint."\n".
-                                    'requested flow name = '. self::$userFlow->flow_name."\n".
-                                    'requested state = '. self::getClassName($nextStateAddress);
-                return Response($responseMessage, 403);
+//                $responseMessage = 'You do not have access rights to the content!'."\n".
+//                    'your checkpoint = ' . self::$userFlow->checkpoint."\n".
+//                    'requested flow name = '. self::$userFlow->flow_name."\n".
+//                    'requested state = '. self::getClassName($nextStateAddress);
+//                return Response($responseMessage, 403);
+                $nextStateAddress = self::detectStateByCheckpoint(self::callMethod(self::$userFlow->flow_address, 'getThis'), self::$userFlow->checkpoint);
+                $nextState = self::callMethod($nextStateAddress, 'getThis');
             }
 
             // assign next state values into $userFlow
