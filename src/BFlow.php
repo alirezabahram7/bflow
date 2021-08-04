@@ -272,8 +272,9 @@ class BFlow
         self::$userFlow->source = 'previous_flow';
         self::$userFlow->flow = $flowClass->getFlow();
         self::$userFlow->flow_name = $flowName;
-        self::$userFlow->state_address = (array_search($state, $flowClass->getFlow()) !== false) ? $state : self::$userFlow->state = $flowClass->getFlow()[0];
+        self::$userFlow->state_address = ( ! empty($state)) ? $state : $flowClass->getFlow()[0];
         self::$userFlow->state = self::getClassName(self::$userFlow->state_address);
+        self::$userFlow->state_type = self::callMethod(self::$userFlow->state_address, 'getThis')->type;
     }
 
 
