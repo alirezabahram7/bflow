@@ -88,8 +88,9 @@ class BFlow
             self::$userFlow->state_address = $nextStateAddress;
 
             $currentCheckpoint = self::$userFlow->checkpoint;
+            $currentStateType = self::$userFlow->state_type;
 
-            if (in_array(self::$userFlow->state_type,[self::DECISION, self::ACTION])) {
+            if (in_array($currentStateType,[self::DECISION, self::ACTION])) {
 
                 // exchange properties value between $this and next state
                 State::$arguments = self::$arguments;
@@ -104,7 +105,7 @@ class BFlow
                 self::$arguments = State::$arguments;
 
                 // get the result of the state function
-                if (self::$userFlow->state_type == self::DECISION) {
+                if ($currentStateType == self::DECISION) {
                     if(class_exists($result)) {
                         $nextPlus1State = $result;
                     }
@@ -118,7 +119,8 @@ class BFlow
                         $responseMessage = "TypeError: Return value of $nextStateAddress must be of the type class address, incorrect value returned!";
                         throw new \TypeError($responseMessage, 500);
                     }
-                } elseif (self::$userFlow->state_type == self::ACTION) {
+                } elseif ($currentStateType == self::ACTION) {
+
                     if(self::$userFlow->source != 'previous_flow') {
                         self::$userFlow->state = $nextStateName;
                         self::$userFlow->source = 'db';
@@ -274,10 +276,12 @@ class BFlow
         $flowClass = self::callMethod($flow, 'getThis');
         self::$userFlow->source = 'previous_flow';
         self::$userFlow->flow = $flowClass->getFlow();
+        self::$userFlow->flow_address = $flow;
         self::$userFlow->flow_name = $flowName;
         self::$userFlow->state_address = ( ! empty($state)) ? $state : $flowClass->getFlow()[0];
         self::$userFlow->state = self::getClassName(self::$userFlow->state_address);
-        self::$userFlow->state_type = self::callMethod(self::$userFlow->state_address, 'getThis')->type;
+        $stateClass = self::callMethod(self::$userFlow->state_address, 'getThis');
+        self::$userFlow->state_type = $stateClass->type;
     }
 
 
